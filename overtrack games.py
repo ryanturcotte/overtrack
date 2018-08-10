@@ -1,6 +1,9 @@
 import ijson
 import urllib.request
 
+# games = new heros_played format
+# gamesOld = old heroes_played
+
 games=[
 "https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-08-08-03-31-LtaMVY37Fo82M6iWjC5Te7/game.json",
 "https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-08-08-03-10-F8tjWit9byvudu3sjCL9pH/game.json",
@@ -48,6 +51,9 @@ games=[
 "https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-06-23-05-11-9FYer8Mab5iiM2pK45HTkV/game.json",
 "https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-06-23-05-00-LSty3JYgUraQVZDbnLCmNg/game.json",
 "https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-06-23-04-45-rbZf388ev2cbD5vY5HB3QX/game.json",
+]
+
+gamesOld = [
 "https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-06-19-04-39-CG6UAH6zcYEpJWMdYHNeFQ/game.json",
 "https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-06-19-03-51-AsAckuFBUomG6iUQzwH5gB/game.json",
 "https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-06-19-03-15-gPXnagqMR4o5n2x7E7Chkc/game.json",
@@ -577,34 +583,36 @@ games=[
 
 ## first failure of heroplayed: https://overtrack-parsed-games.s3.amazonaws.com/Actshun-1796/2018-06-19-04-39-CG6UAH6zcYEpJWMdYHNeFQ/game.json
 
-for game in games:
-    jsongame = urllib.request.urlopen(game)
-    teamdata = list(ijson.items(jsongame, 'teams.blue.item'))
-    zIn = False
-    tIn = False
-    for t in teamdata:
-        if t['name'] == 'ZERSKE':
-           ## print("Zerske in game")
-            zIn = True
-        if t['name'] == 'TRAPHOUSE':
-            ##print("Traphouse in game")
-            tIn = True
-
-    if zIn & tIn == True:
-        print("Zerske+Trap in game")
+def processGame(jsons):
+    for game in jsons:
         jsongame = urllib.request.urlopen(game)
-        result = list(ijson.items(jsongame, 'result'))
-        print(result)
-        jsongame = urllib.request.urlopen(game)
-        heroPlayed = list(ijson.items(jsongame, 'hero_played.time_played'))
-        print(game)
-        if not heroPlayed:
-            heroPlayed = list(ijson.items(jsongame, 'heroes_played.item'))
-        print(heroPlayed)
-##    else:
-##        print("nothing")
-##    if "TRAPHOUSE" in teamdata:
-##        print("Zerske+Trap in game")
-##        print(list.ijson.items(jsongame, 'result.item'))
+        teamdata = list(ijson.items(jsongame, 'teams.blue.item'))
+        zIn = False
+        tIn = False
+        for t in teamdata:
+            if t['name'] == 'ZERSKE':
+               ## print("Zerske in game")
+                zIn = True
+            if t['name'] == 'TRAPHOUSE':
+                ##print("Traphouse in game")
+                tIn = True
 
-    
+        if zIn & tIn == True:
+            jsongame = urllib.request.urlopen(game)
+            result = list(ijson.items(jsongame, 'result'))
+            jsongame = urllib.request.urlopen(game)
+            heroPlayed = list(ijson.items(jsongame, 'hero_played.time_played'))
+            #if hero_played returns blank, query other json value format
+            if not heroPlayed:
+                jsongame = urllib.request.urlopen(game)
+                heroPlayed = list(ijson.items(jsongame, 'heroes_played.item'))
+            print(game,result,heroPlayed,sep=";")
+
+def getFriendsHeros(jsons):
+    for game in jsons:
+        jsongame = urllib.request.urlopen(game)
+        killfeed = list(ijson.items(jsongame, 'killfeed.item'))
+        print(killfeed)
+
+processGame(games)
+processGame(gamesOld)
